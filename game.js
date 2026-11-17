@@ -50,7 +50,10 @@ document.getElementById("picture").src = randval.image; // this is to pick a ran
 
 const textBox = document.createElement("input"); // the box that we will append to
 textBox.type = "text"; //what kind of box 
-document.body.appendChild(textBox); //add after picture
+textBox.id = "answer"; //id for the box
+textBox.placeholder = "Type the landmark name"; //placeholder text
+document.getElementById("game").appendChild(textBox); //add after picture
+textBox.focus(); 
 
 userInput = textBox.value;
 console.log(userInput);
@@ -62,6 +65,7 @@ textBox.addEventListener("keydown", function(event) {
 
         if (removeThe(userInput) === randval.word){
             score +=1
+            textBox.value = ""; 
             randval = pictures[Math.floor(Math.random() * pictures.length)];
             console.log(randval);
             document.getElementById("picture").src = randval.image; // this is to pick a random picture in list
