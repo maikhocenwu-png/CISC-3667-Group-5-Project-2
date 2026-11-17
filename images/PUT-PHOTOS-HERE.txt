@@ -1,1 +1,0 @@
-Save one photo per landmark here. File names are listed in ../README.md

@@ -1,108 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Landmark Guesser</title>
-<link rel="stylesheet" href="style.css">
+    <title>Picture Game</title>
 </head>
 <body>
-<div id="app">
+    <img id="picture" width="500">
 
-<!-- START -->
-<section id="start">
-  <div class="card hero">
-    <h1>🌍 Landmark Guesser</h1>
-    <p>30 world landmarks. Name each one from its picture, then drop a pin on the map to find where it is.</p>
-    <ol class="steps">
-      <li><span>1</span><div><b>Guess the landmark</b> from the scene (a hint reveals the country, for half points).</div></li>
-      <li><span>2</span><div><b>Pin its location</b> on the world map. The closer, the more points.</div></li>
-      <li><span>3</span><div><b>See the answer</b> on the map, with facts about the place.</div></li>
-    </ol>
-    <div class="modes">
-      <button class="btn block" id="play30">Play all 30 landmarks</button>
-      <div class="best" id="best30"></div>
-      <button class="btn ghost block" id="play10">Quick game (10 random)</button>
-      <div class="best" id="best10"></div>
-    </div>
-  </div>
-</section>
-
-<!-- GAME -->
-<section id="game" class="hidden">
-  <div class="top">
-    <div class="brand">🌍 Landmark Guesser</div>
-    <div class="stats"><span class="pill">Round <b id="rnd">1/30</b></span><span class="pill">Score <b id="score">0</b></span></div>
-  </div>
-  <div class="bar"><i id="prog"></i></div>
-
-  <div id="nameCard" class="card">
-    <div class="scene" id="scene"></div>
-    <h2 class="q" id="q" tabindex="-1">Which landmark is this?</h2>
-    <div class="opts" id="opts"></div>
-    <div class="hint" id="hintRow"><button class="link" id="hintBtn" type="button">Need a hint? Show the country (−250 pts)</button><span id="hintOut"></span></div>
-    <div id="nameFb" class="feedback hidden" role="status"></div>
-    <div class="row" style="margin-top:12px"><button class="btn block hidden" id="toMap" type="button">Pin it on the map →</button></div>
-  </div>
-
-  <div id="mapCard" class="card hidden">
-    <h2 class="q" id="mapQ" tabindex="-1" style="margin-top:0"></h2>
-    <div class="mapwrap" id="mapwrap">
-      <svg id="map" role="img" aria-label="World map. Tap to place your guess."></svg>
-      <div class="zoom">
-        <button type="button" id="zin" aria-label="Zoom in">+</button>
-        <button type="button" id="zout" aria-label="Zoom out">−</button>
-        <button type="button" id="zreset" aria-label="Reset view" style="font-size:15px">⤾</button>
-      </div>
-      <div class="maphint" id="maphint">Tap to drop a pin · drag to pan · pinch or +/− to zoom</div>
-    </div>
-    <div class="legend hidden" id="legend"><span><i class="dot" style="background:var(--guess)"></i>Your pin</span><span><i class="dot" style="background:var(--ans)"></i>Actual location</span></div>
-    <div class="row" style="margin-top:12px" id="pinRow">
-      <button class="btn" id="confirm" type="button" disabled>Confirm pin</button>
-      <button class="link" id="skipPin" type="button">Skip (0 map points)</button>
-    </div>
-  </div>
-
-  <div id="result" class="card hidden info">
-    <div class="scores">
-      <div><small>Landmark</small><b id="sName">0</b></div>
-      <div><small>Location</small><b id="sMap">0</b></div>
-      <div><small>Round total</small><b id="sTot">0</b></div>
-    </div>
-    <div class="meta" id="dist"></div>
-    <h2 id="rName"></h2>
-    <div class="meta" id="rMeta"></div>
-    <p class="fact" id="rFact"></p>
-    <div class="meta" id="rCredit"></div>
-    <div class="row" style="margin-top:14px"><button class="btn block" id="next" type="button">Next landmark →</button></div>
-  </div>
-</section>
-
-<!-- END -->
-<section id="end" class="hidden">
-  <div class="card center">
-    <div style="font-size:42px" aria-hidden="true">🏆</div>
-    <h1 id="endTitle" style="font-size:26px"></h1>
-    <div class="big" id="endScore"></div>
-    <div class="meta" id="endSub"></div>
-    <div class="row" style="justify-content:center;margin-top:12px">
-      <button class="btn" id="again" type="button">Play again</button>
-      <button class="btn ghost" id="copy" type="button">Copy result</button>
-    </div>
-    <div class="meta" id="copied" role="status"></div>
-  </div>
-  <div class="card">
-    <h3 style="margin-bottom:6px">Your rounds</h3>
-    <div style="overflow-x:auto"><table id="review"></table></div>
-  </div>
-</section>
-
-<div class="foot">Map data: Natural Earth.</div>
-</div>
-
-<script src="landmarks.js"></script>
-<script src="art.js"></script>
-<script src="world-map.js"></script>
-<script src="game.js"></script>
+    <script src="game.js"></script>
 </body>
 </html>
