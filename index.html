@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Picture Game</title>
+    <title>Landmark Guesser</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -11,14 +11,35 @@
       <!-- Start screen -->
       <div id="start">
         <h1>Landmark Guesser</h1>
+        <p>Choose a game length:</p>
+            <div id="lengthRow">
+             <button id="quickBtn" class="lengthBtn selected" type="button">
+                Quick<small>5 rounds</small>
+                </button>
+                <button id="regularBtn" class="lengthBtn" type="button">
+                 Regular<small>10 rounds</small>
+                </button>
+            </div>
         <p>Pick a difficulty level to start the game!</p>
         <button id="easyBtn" class="bigButton" type="button">
           Easy<small>Multiple choice</small>
         </button>
         <button id="hardBtn" class="bigButton" type="button">
-          Hard<small>Type the answer</small>
+          Hard<small>Type the answer & no country name in pin the map</small>
         </button>
+        <button id="howBtn" class="bigButton" type="button">
+            How to play<small> Tutorial </small>
+        </button>    
       </div>
+
+      <!-- Tutorial screen -->
+    <div id="tutorial" class="hidden">
+        <h2 id="tutTitle"></h2>
+        <p id="tutText"></p>
+        <p id="tutCount"></p>
+        <button id="tutBack" class="actionBtn" type="button">Back</button>
+        <button id="tutNext" class="actionBtn" type="button">Next</button>
+    </div>
 
       <!-- Game screen -->
       <div id="play" class="hidden">
@@ -28,6 +49,7 @@
         <img id="picture" src="" alt="Landmark picture" />
         <div id="options"></div>
         <p id="feedback"></p>
+        <button id="toMap" class="actionBtn hidden" type="button">Continue to map</button>
       </div>
 
       <!-- Map screen: drop a pin -->
@@ -44,6 +66,18 @@
         <p id="mapInfo"></p>
         <button id="confirm" class="actionBtn" type="button" disabled>Confirm pin</button>
         <button id="nextRound" class="actionBtn hidden" type="button">Next landmark</button>
+      </div>
+
+      <!-- Info screen: fun fact + history -->
+      <div id="infoPage" class="hidden">
+        <h2 id="infoName"></h2>
+        <p id="infoPlace"></p>
+        <img id="infoPicture" src="" alt="" />
+        <p id="infoFact"></p>
+        <h3>History</h3>
+        <p id="infoHistory"></p>
+        <ul id="infoKeyFacts"></ul>
+        <button id="infoNext" class="actionBtn" type="button">Next landmark</button>
       </div>
 
       <!-- End screen -->
