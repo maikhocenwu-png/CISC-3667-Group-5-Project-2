@@ -8,12 +8,29 @@
   </head>
   <body>
     <main id="game">
-      <div id="status">
-        <span id="total">1/5</span> · <span id="score">0</span>
+      <!-- Start screen -->
+      <div id="start">
+        <h1>Landmark Guesser</h1>
+        <p>Pick a difficulty level to start the game!</p>
+        <button id="easyBtn" class="bigButton" type="button">
+          Easy<small>Multiple choice</small>
+        </button>
+        <button id="hardBtn" class="bigButton" type="button">
+          Hard<small>Type the answer</small>
+        </button>
       </div>
-      <img id="picture" src="" alt="Landmark picture" />
-      <p id="feedback"></p>
 
+      <!-- Game screen -->
+      <div id="play" class="hidden">
+        <div id="status">
+          <span id="total">1/5</span> · <span id="score">0</span>
+        </div>
+        <img id="picture" src="" alt="Landmark picture" />
+        <div id="options"></div>
+        <p id="feedback"></p>
+      </div>
+
+      <!-- End screen -->
       <div id="end" class="hidden">
         <h2>Game over!</h2>
         <p id="finalScore"></p>
