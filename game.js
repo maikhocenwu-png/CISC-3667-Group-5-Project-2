@@ -60,17 +60,28 @@ function grade(input, answer) {
     } 
   }
   return result;
-} 
-
+}
 
 const ROUNDS = 5;
-const POINTS_EXACT = 100;
-const POINTS_TYPO = 75;
+const POINTS_EXACT = 100; // Hard: typed it right
+const POINTS_TYPO = 75; // Hard: typed it with a small typo
+const POINTS_EASY = 50; // Easy: picked the right choice
 
-let availableLandmarks = landmarks.slice(); // create a copy of the landmarks array
+let difficulty = "easy"; // "easy" or "hard"
+let availableLandmarks = [];
 let score = 0;
 let round = 1;
-let userInput;;
+let randval = null;
+
+// Return a shuffled copy of a list.
+function shuffle(list) {
+  const copy = list.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
 
 function pickRandomLandmark() {
   const randomIndex = Math.floor(Math.random() * availableLandmarks.length);
@@ -79,56 +90,113 @@ function pickRandomLandmark() {
   return landmark;
 }
 
-let randval = pickRandomLandmark();
+const startBox = document.getElementById("start");
+const playBox = document.getElementById("play");
+const endBox = document.getElementById("end");
+const picture = document.getElementById("picture");
+const feedback = document.getElementById("feedback");
+const optionsBox = document.getElementById("options");
 
-const picture = document.getElementById("picture"); 
-const feedback = document.getElementById("feedback"); 
-
-picture.src = randval.image; // this is to pick a random picture in list and display it
-document.getElementById("total").textContent = `Round: ${round} / ${ROUNDS}`; // this is to show the round number
-document.getElementById("score").textContent = `Score: ${score}`; // show the score from the start
-
-const textBox = document.createElement("input"); // the box that we will append to
+const textBox = document.createElement("input"); // the box for Hard mode
 textBox.type = "text"; //what kind of box
 textBox.id = "answer"; //id for the box
 textBox.placeholder = "Type the landmark name"; //placeholder text
-document.getElementById("game").appendChild(textBox); //add after picture
-textBox.focus();
+playBox.appendChild(textBox); //add inside the game area
 
+// Start a new game.
+function startGame(chosen) {
+  difficulty = chosen; // "easy" or "hard", from the button you clicked
+  availableLandmarks = landmarks.slice(); // reset the available landmarks
+  score = 0;
+  round = 1;
+  startBox.classList.add("hidden");
+  endBox.classList.add("hidden");
+  playBox.classList.remove("hidden");
+  feedback.textContent = "";
+  document.getElementById("score").textContent = `Score: ${score}`;
+  showRound();
+}
+
+// Show the current round's landmark and either the options or the text box.
+function showRound() {
+  randval = pickRandomLandmark();
+  picture.src = randval.image;
+  document.getElementById("total").textContent = `Round: ${round} / ${ROUNDS}`;
+
+  if (difficulty === "easy") {
+    textBox.classList.add("hidden");
+    optionsBox.classList.remove("hidden");
+    showOptions();
+  } else {
+    optionsBox.classList.add("hidden");
+    textBox.classList.remove("hidden");
+    textBox.value = "";
+    textBox.focus();
+  }
+}
+
+// Easy mode: multiple choice
+function showOptions() {
+  const others = shuffle(landmarks.filter((l) => l !== randval)).slice(0, 3);
+  const choices = shuffle([randval, ...others]);
+
+  optionsBox.innerHTML = "";
+  for (const choice of choices) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "option";
+    button.textContent = choice.name;
+    button.addEventListener("click", function () {
+      if (choice === randval) {
+        finishRound(POINTS_EASY, `Correct! +${POINTS_EASY} points!`);
+      } else {
+        finishRound(0, `Incorrect! The correct answer is: ${randval.name}`);
+      }
+    });
+    optionsBox.appendChild(button);
+  }
+}
+
+// Add points, show a message, then go to the next round or the end.
+function finishRound(points, message) {
+  score += points;
+  feedback.textContent = message;
+  document.getElementById("score").textContent = `Score: ${score}`;
+
+  if (round >= ROUNDS) {
+    const best = difficulty === "easy" ? POINTS_EASY : POINTS_EXACT;
+    playBox.classList.add("hidden");
+    document.getElementById("finalScore").textContent = `Final Score: ${score} / ${ROUNDS * best}`;
+    endBox.classList.remove("hidden");
+  } else {
+    round += 1;
+    showRound();
+  }
+}
+
+// Hard mode: type the answer.
 textBox.addEventListener("keydown", function (event) {
   if (event.key === "Enter") {
-    userInput = textBox.value;
-
-    const result = grade(userInput, randval.answers);
+    const result = grade(textBox.value, randval.answers);
 
     if (result === "exact") {
-      score += POINTS_EXACT;
-      feedback.textContent = `Correct! +${POINTS_EXACT} points!`;
+      finishRound(POINTS_EXACT, `Correct! +${POINTS_EXACT} points!`);
     } else if (result === "typo") {
-      score += POINTS_TYPO;
-      feedback.textContent = `Close, typo! +${POINTS_TYPO} points!`;
+      finishRound(POINTS_TYPO, `Close, typo! +${POINTS_TYPO} points!`);
     } else {
-      feedback.textContent = `Incorrect! The correct answer is: ${randval.answers[0]}`;
-    }
-
-    document.getElementById("score").textContent = `Score: ${score}`; // this is to show the score
-
-    if (round >= ROUNDS) {
-      picture.classList.add("hidden");
-      textBox.classList.add("hidden");
-      document.getElementById("finalScore").textContent = `Final Score: ${score} / ${ROUNDS * POINTS_EXACT}`;
-      document.getElementById("end").classList.remove("hidden");
-    } else {
-      round += 1;
-      randval = pickRandomLandmark();
-      picture.src = randval.image;
-      document.getElementById("total").textContent = `Round: ${round} / ${ROUNDS}`;
-      textBox.value = "";
-      textBox.focus();
+      finishRound(0, `Incorrect! The correct answer is: ${randval.answers[0]}`);
     }
   }
 });
 
+document.getElementById("easyBtn").addEventListener("click", function () {
+  startGame("easy");
+});
+
+document.getElementById("hardBtn").addEventListener("click", function () {
+  startGame("hard");
+});
+
 document.getElementById("again").addEventListener("click", function () {
-  location.reload(); // reloads the page to start a new game
+  location.reload(); // reloads the page to go back to the start screen
 });
