@@ -62,16 +62,22 @@ function grade(input, answer) {
   return result;
 }
 
+
+const $ = (id) => document.getElementById(id);
+const S = { phase: "name", pin: null, cur: null, diff: "easy" };
+
 const ROUNDS = 5;
 const POINTS_EXACT = 100; // Hard: typed it right
 const POINTS_TYPO = 75; // Hard: typed it with a small typo
 const POINTS_EASY = 50; // Easy: picked the right choice
+const POINTS_MAP = 100; // most you can earn for the pin
 
 let difficulty = "easy"; // "easy" or "hard"
 let availableLandmarks = [];
 let score = 0;
 let round = 1;
 let randval = null;
+let roundPoints = 0; // points earned by naming the landmark this round
 
 // Return a shuffled copy of a list.
 function shuffle(list) {
@@ -96,6 +102,10 @@ const endBox = document.getElementById("end");
 const picture = document.getElementById("picture");
 const feedback = document.getElementById("feedback");
 const optionsBox = document.getElementById("options");
+const mapBox = document.getElementById("mapPage");
+const confirmBtn = document.getElementById("confirm");
+const nextBtn = document.getElementById("nextRound");
+const mapInfo = document.getElementById("mapInfo");
 
 const textBox = document.createElement("input"); // the box for Hard mode
 textBox.type = "text"; //what kind of box
@@ -111,6 +121,7 @@ function startGame(chosen) {
   round = 1;
   startBox.classList.add("hidden");
   endBox.classList.add("hidden");
+  mapBox.classList.add("hidden");
   playBox.classList.remove("hidden");
   feedback.textContent = "";
   document.getElementById("score").textContent = `Score: ${score}`;
@@ -157,22 +168,87 @@ function showOptions() {
   }
 }
 
-// Add points, show a message, then go to the next round or the end.
+// The naming part is done: add its points, then show the map page.
 function finishRound(points, message) {
   score += points;
+  roundPoints = points;
   feedback.textContent = message;
   document.getElementById("score").textContent = `Score: ${score}`;
+  showMap();
+}
 
+
+// map part
+// Distance in km between two places on Earth (haversine formula).
+function km(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const rad = (deg) => (deg * Math.PI) / 180;
+  const dLat = rad(lat2 - lat1);
+  const dLon = rad(lon2 - lon1);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+// Pin points: full points for a very close pin, fewer as it gets farther away.
+function mapPoints(distance) {
+  if (distance < 25) {
+    return POINTS_MAP;
+  }
+  return Math.round(POINTS_MAP * Math.exp(-distance / 1500));
+}
+
+// Show page 2: the map where the player drops a pin.
+// (mapLabels.js draws the map and handles clicking, dragging and zooming.)
+function showMap() {
+  S.cur = randval;
+  S.pin = null;
+  S.phase = "pin"; // mapLabels.js only accepts clicks in this phase
+  S.diff = difficulty; // Easy shows names on the map, Hard does not
+  playBox.classList.add("hidden");
+  mapBox.classList.remove("hidden");
+  document.getElementById("mapQuestion").textContent = `Where is the ${randval.name}?`;
+  mapInfo.textContent = "Click the map to drop your pin. Drag to move, scroll or +/- to zoom.";
+  confirmBtn.disabled = true;
+  confirmBtn.classList.remove("hidden");
+  nextBtn.classList.add("hidden");
+  measure(); // measure the map's size now that it is visible
+  setView(homeView()); // show the whole world
+}
+
+// "Confirm pin": measure the distance, give points, show the answer.
+confirmBtn.addEventListener("click", function () {
+  S.phase = "reveal"; // no more pin changes
+  const distance = km(S.pin.lat, S.pin.lon, randval.lat, randval.lon);
+  const points = mapPoints(distance);
+  score += points;
+  document.getElementById("score").textContent = `Score: ${score}`;
+
+  drawMarkers(); // red = real place, blue = your pin
+  // zoom the map so both pins are in view
+  animateTo(fitTo([toXY(S.pin.lat, S.pin.lon), toXY(randval.lat, randval.lon)]), 900);
+  mapInfo.textContent =
+    `Your pin was ${Math.round(distance).toLocaleString()} km away. ` +
+    `+${points} points! (This round: ${roundPoints + points})`;
+  confirmBtn.classList.add("hidden");
+  nextBtn.textContent = round >= ROUNDS ? "See final score" : "Next landmark";
+  nextBtn.classList.remove("hidden");
+});
+
+// "Next": go to the next round, or to the end.
+nextBtn.addEventListener("click", function () {
+  mapBox.classList.add("hidden");
   if (round >= ROUNDS) {
-    const best = difficulty === "easy" ? POINTS_EASY : POINTS_EXACT;
-    playBox.classList.add("hidden");
+    const best = (difficulty === "easy" ? POINTS_EASY : POINTS_EXACT) + POINTS_MAP;
     document.getElementById("finalScore").textContent = `Final Score: ${score} / ${ROUNDS * best}`;
     endBox.classList.remove("hidden");
   } else {
     round += 1;
+    playBox.classList.remove("hidden");
     showRound();
   }
-}
+});
 
 // Hard mode: type the answer.
 textBox.addEventListener("keydown", function (event) {

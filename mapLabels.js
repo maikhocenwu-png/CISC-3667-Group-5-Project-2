@@ -109,6 +109,7 @@ function buildLabels(group){
 
 function updateLabels(){
   if(!lblG)return;
+  if(S.diff!=='easy'){for(const L of LABELS)L.el.setAttribute('display','none');return} // Hard: no names on the map
 
   const W=svg.clientWidth||600;
   const k=vb.w/W;
