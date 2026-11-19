@@ -30,6 +30,22 @@
         <p id="feedback"></p>
       </div>
 
+      <!-- Map screen: drop a pin -->
+      <div id="mapPage" class="hidden">
+        <h2 id="mapQuestion"></h2>
+        <div id="mapwrap">
+          <svg id="map" role="img" aria-label="World map. Click to place your guess."></svg>
+          <div class="zoom">
+            <button type="button" id="zin" aria-label="Zoom in">+</button>
+            <button type="button" id="zout" aria-label="Zoom out">-</button>
+            <button type="button" id="zreset" aria-label="Reset view">&#10558;</button>
+          </div>
+        </div>
+        <p id="mapInfo"></p>
+        <button id="confirm" class="actionBtn" type="button" disabled>Confirm pin</button>
+        <button id="nextRound" class="actionBtn hidden" type="button">Next landmark</button>
+      </div>
+
       <!-- End screen -->
       <div id="end" class="hidden">
         <h2>Game over!</h2>
@@ -39,6 +55,8 @@
     </main>
 
     <script src="landmarks.js"></script>
+    <script src="worldMap.js"></script>
     <script src="game.js"></script>
+    <script src="mapLabels.js"></script>
   </body>
 </html>
