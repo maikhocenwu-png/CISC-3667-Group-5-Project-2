@@ -1,16 +1,27 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Picture Game</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
     <main id="game">
-        <img id="picture" src="" alt="Landmark picture">
+      <div id="status">
+        <span id="total">1/5</span> · <span id="score">0</span>
+      </div>
+      <img id="picture" src="" alt="Landmark picture" />
+      <p id="feedback"></p>
+
+      <div id="end" class="hidden">
+        <h2>Game over!</h2>
+        <p id="finalScore"></p>
+        <button id="again" type="button">Play again</button>
+      </div>
     </main>
 
+    <script src="landmarks.js"></script>
     <script src="game.js"></script>
-</body>
+  </body>
 </html>
