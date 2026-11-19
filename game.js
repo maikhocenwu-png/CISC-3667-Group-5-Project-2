@@ -62,11 +62,10 @@ function grade(input, answer) {
   return result;
 }
 
-
 const $ = (id) => document.getElementById(id);
 const S = { phase: "name", pin: null, cur: null, diff: "easy" };
 
-const ROUNDS = 5;
+let ROUNDS = 5;
 const POINTS_EXACT = 100; // Hard: typed it right
 const POINTS_TYPO = 75; // Hard: typed it with a small typo
 const POINTS_EASY = 50; // Easy: picked the right choice
@@ -105,6 +104,9 @@ const optionsBox = document.getElementById("options");
 const mapBox = document.getElementById("mapPage");
 const confirmBtn = document.getElementById("confirm");
 const nextBtn = document.getElementById("nextRound");
+const toMapBtn = document.getElementById("toMap");
+const infoBox = document.getElementById("infoPage");
+const infoNext = document.getElementById("infoNext");
 const mapInfo = document.getElementById("mapInfo");
 
 const textBox = document.createElement("input"); // the box for Hard mode
@@ -122,6 +124,7 @@ function startGame(chosen) {
   startBox.classList.add("hidden");
   endBox.classList.add("hidden");
   mapBox.classList.add("hidden");
+  infoBox.classList.add("hidden");
   playBox.classList.remove("hidden");
   feedback.textContent = "";
   document.getElementById("score").textContent = `Score: ${score}`;
@@ -132,6 +135,9 @@ function startGame(chosen) {
 function showRound() {
   randval = pickRandomLandmark();
   picture.src = randval.image;
+  feedback.textContent = "";
+  toMapBtn.classList.add("hidden");
+  textBox.disabled = false; // unlock typing (it is locked after you answer)
   document.getElementById("total").textContent = `Round: ${round} / ${ROUNDS}`;
 
   if (difficulty === "easy") {
@@ -158,6 +164,17 @@ function showOptions() {
     button.className = "option";
     button.textContent = choice.name;
     button.addEventListener("click", function () {
+      
+      // Highlight the correct answer in green, and the wrong answer in red.
+      for (const other of optionsBox.querySelectorAll("button")) {
+        if (other.textContent === randval.name) {
+          other.classList.add("correct");
+        }
+      }
+      if (choice !== randval) {
+        button.classList.add("wrong");
+      }
+
       if (choice === randval) {
         finishRound(POINTS_EASY, `Correct! +${POINTS_EASY} points!`);
       } else {
@@ -168,17 +185,24 @@ function showOptions() {
   }
 }
 
-// The naming part is done: add its points, then show the map page.
+
 function finishRound(points, message) {
   score += points;
   roundPoints = points;
   feedback.textContent = message;
   document.getElementById("score").textContent = `Score: ${score}`;
-  showMap();
+
+  textBox.disabled = true;
+  for (const b of optionsBox.querySelectorAll("button")) {
+    b.disabled = true;
+  }
+  toMapBtn.classList.remove("hidden");
 }
 
+toMapBtn.addEventListener("click", showMap);
 
-// map part
+
+// Map part
 // Distance in km between two places on Earth (haversine formula).
 function km(lat1, lon1, lat2, lon2) {
   const R = 6371;
@@ -199,7 +223,7 @@ function mapPoints(distance) {
   return Math.round(POINTS_MAP * Math.exp(-distance / 1500));
 }
 
-// Show page 2: the map where the player drops a pin.
+//  part where the player drops a pin.
 // (mapLabels.js draws the map and handles clicking, dragging and zooming.)
 function showMap() {
   S.cur = randval;
@@ -213,6 +237,7 @@ function showMap() {
   confirmBtn.disabled = true;
   confirmBtn.classList.remove("hidden");
   nextBtn.classList.add("hidden");
+  cancelAnimationFrame(anim); // stop any zoom animation left over from the last round
   measure(); // measure the map's size now that it is visible
   setView(homeView()); // show the whole world
 }
@@ -232,13 +257,36 @@ confirmBtn.addEventListener("click", function () {
     `Your pin was ${Math.round(distance).toLocaleString()} km away. ` +
     `+${points} points! (This round: ${roundPoints + points})`;
   confirmBtn.classList.add("hidden");
-  nextBtn.textContent = round >= ROUNDS ? "See final score" : "Next landmark";
+  nextBtn.textContent = "Learn about it";
   nextBtn.classList.remove("hidden");
 });
 
-// "Next": go to the next round, or to the end.
-nextBtn.addEventListener("click", function () {
+// Info page: show the landmark's name, picture, and some facts.
+function showInfo() {
   mapBox.classList.add("hidden");
+  document.getElementById("infoName").textContent = randval.name;
+  document.getElementById("infoPlace").textContent = `${randval.place}, ${randval.country} · ${randval.year}`;
+  const pic = document.getElementById("infoPicture");
+  pic.src = randval.image;
+  pic.alt = randval.name;
+  document.getElementById("infoFact").textContent = `Fun fact: ${randval.fact}`;
+  document.getElementById("infoHistory").textContent = randval.history;
+  const list = document.getElementById("infoKeyFacts");
+  list.innerHTML = ""; // clear the previous landmark's facts
+  for (const f of randval.keyFacts) {
+    const li = document.createElement("li");
+    li.textContent = f;
+    list.appendChild(li);
+  }
+  infoNext.textContent = round >= ROUNDS ? "See final score" : "Next landmark";
+  infoBox.classList.remove("hidden");
+  window.scrollTo(0, 0);
+}
+
+nextBtn.addEventListener("click", showInfo);
+
+infoNext.addEventListener("click", function () {
+  infoBox.classList.add("hidden");
   if (round >= ROUNDS) {
     const best = (difficulty === "easy" ? POINTS_EASY : POINTS_EXACT) + POINTS_MAP;
     document.getElementById("finalScore").textContent = `Final Score: ${score} / ${ROUNDS * best}`;
@@ -260,10 +308,77 @@ textBox.addEventListener("keydown", function (event) {
     } else if (result === "typo") {
       finishRound(POINTS_TYPO, `Close, typo! +${POINTS_TYPO} points!`);
     } else {
-      finishRound(0, `Incorrect! The correct answer is: ${randval.answers[0]}`);
+      finishRound(0, `Incorrect! The correct answer is: ${randval.name}`);
     }
   }
 });
+
+
+// game length
+const quickBtn = document.getElementById("quickBtn");
+const regularBtn = document.getElementById("regularBtn");
+
+function setLength(rounds) {
+  ROUNDS = rounds;
+  quickBtn.classList.toggle("selected", rounds === 5);
+  regularBtn.classList.toggle("selected", rounds === 10);
+}
+
+quickBtn.addEventListener("click", function () {
+  setLength(5);
+});
+
+regularBtn.addEventListener("click", function () {
+  setLength(10);
+});
+
+
+// tutorial part
+const tutorialBox = document.getElementById("tutorial");
+
+const tutorialSteps = [
+  { title: "1. Name the landmark", text: "You'll see a photo, and then you have to guess the name of the landmark on the pictures. On easy mode, pick the right name from four choices. On hard mode, type the name of the landmark yourself." },
+  { title: "2. Pin it on the map", text: "Guess the location of the landmark, click to pin where the landmark is on the world map, then press to confirm the location. Then you'll get point base on the location you pin, the closer you are, the more points you get." },
+  { title: "3. Learn more about it", text: "Read a fun fact and a short history of the landmark!" },
+];
+let tutorialIndex = 0; // which page we are on (0 = the first)
+
+function showTutorialStep() {
+  const step = tutorialSteps[tutorialIndex];
+  document.getElementById("tutTitle").textContent = step.title;
+  document.getElementById("tutText").textContent = step.text;
+  document.getElementById("tutCount").textContent = `${tutorialIndex + 1} / ${tutorialSteps.length}`;
+  document.getElementById("tutBack").disabled = tutorialIndex === 0;
+  const isLast = tutorialIndex === tutorialSteps.length - 1;
+  document.getElementById("tutNext").textContent = isLast ? "Back to menu" : "Next";
+}
+
+function closeTutorial() {
+  tutorialBox.classList.add("hidden");
+  startBox.classList.remove("hidden");
+}
+
+document.getElementById("howBtn").addEventListener("click", function () {
+  startBox.classList.add("hidden");
+  tutorialBox.classList.remove("hidden");
+  tutorialIndex = 0;
+  showTutorialStep();
+});
+
+document.getElementById("tutNext").addEventListener("click", function () {
+  if (tutorialIndex === tutorialSteps.length - 1) {
+    closeTutorial();
+  } else {
+    tutorialIndex += 1;
+    showTutorialStep();
+  }
+});
+
+document.getElementById("tutBack").addEventListener("click", function () {
+  tutorialIndex -= 1;
+  showTutorialStep();
+});
+
 
 document.getElementById("easyBtn").addEventListener("click", function () {
   startGame("easy");
