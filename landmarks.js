@@ -205,7 +205,7 @@ const landmarks = [
     fact: "Japan's highest mountain stands 3,776 m tall. It is an active volcano, though its last eruption was in 1707.",
     history: "Mount Fuji is Japan's highest mountain and an active stratovolcano, though its last eruption was in 1707 to 1708. It has been sacred in Shinto and Buddhist traditions for centuries, and many pilgrims climb it. It has inspired countless artists, most famously Hokusai in his series of woodblock prints. UNESCO recognized it as a cultural landscape rather than a natural site because of its artistic and spiritual importance.",
     keyFacts: ["Height: 3,776 m (12,389 ft)", "Last eruption: 1707 to 1708", "UNESCO World Heritage Site (cultural landscape) since 2013"],
-    answers: ["mount fuji", "mt fuji", "fuji", "fujisan"],
+    answers: ["mount fuji", "mt fuji", "fuji", "fujisan", "mountain fuji"],
     image: 'images/Mount Fuji.jpg',
     credit: ''
   },
