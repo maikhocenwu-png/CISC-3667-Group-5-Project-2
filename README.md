@@ -15,6 +15,7 @@ How to run/install the game:
 2. Open 'index.html' in a browser
 
 Pictures: 
+
 Big ben :Diogo Nunes:https://unsplash.com/photos/big-ben-under-white-sky-during-daytime-2c08m7lce68
 
 background 2: David Becker:https://unsplash.com/photos/a-mountain-covered-in-snow-under-a-cloudy-sky-mGx5-xt1uec 
