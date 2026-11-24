@@ -48,6 +48,10 @@
         </div>
         <img id="picture" src="" alt="Landmark picture" />
         <div id="options"></div>
+        <div id="hintBox" class="hidden">
+          <p id="hintText"></p>
+          <button id="hintBtn" class="actionBtn" type="button"></button>
+        </div>
         <p id="feedback"></p>
         <button id="toMap" class="actionBtn hidden" type="button">Continue to map</button>
       </div>
@@ -64,6 +68,7 @@
           </div>
         </div>
         <p id="mapInfo"></p>
+        <button id="areaHintBtn" class="actionBtn hidden" type="button"></button>
         <button id="confirm" class="actionBtn" type="button" disabled>Confirm pin</button>
         <button id="nextRound" class="actionBtn hidden" type="button">Next landmark</button>
       </div>
@@ -84,6 +89,7 @@
       <div id="end" class="hidden">
         <h2>Game over!</h2>
         <p id="finalScore"></p>
+        <div id="summary"></div>
         <button id="again" type="button">Play again</button>
       </div>
     </main>

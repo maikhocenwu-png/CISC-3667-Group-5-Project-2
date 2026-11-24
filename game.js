@@ -63,13 +63,16 @@ function grade(input, answer) {
 }
 
 const $ = (id) => document.getElementById(id);
-const S = { phase: "name", pin: null, cur: null, diff: "easy" };
+const S = { phase: "name", pin: null, cur: null, diff: "easy", hint: null };
 
 let ROUNDS = 5;
 const POINTS_EXACT = 100; // Hard: typed it right
 const POINTS_TYPO = 75; // Hard: typed it with a small typo
 const POINTS_EASY = 50; // Easy: picked the right choice
 const POINTS_MAP = 100; // most you can earn for the pin
+const HINT_COST = 10; // Hard: each letter hint costs this many points
+const MAX_HINTS = 5; // Hard: at most this many letter hints per round
+const AREA_HINT_COST = 25; // Easy: showing the dashed circle costs this many points
 
 let difficulty = "easy"; // "easy" or "hard"
 let availableLandmarks = [];
@@ -77,6 +80,13 @@ let score = 0;
 let round = 1;
 let randval = null;
 let roundPoints = 0; // points earned by naming the landmark this round
+let answered = false; // true once this round's name question is answered (stops double scoring)
+let hintsUsed = 0; // Hard: letter hints used this round
+let hintMask = []; // Hard: which letters of the name are revealed
+let roundLog = []; // one entry per finished round, used for the summary on the end screen
+let cur = null; // the entry for the round being played
+let hintName = ""; // Hard: the name the hint is built from
+let areaHintUsed = false; // Easy: did the player click the circle hint this round?
 
 // Return a shuffled copy of a list.
 function shuffle(list) {
@@ -108,12 +118,16 @@ const toMapBtn = document.getElementById("toMap");
 const infoBox = document.getElementById("infoPage");
 const infoNext = document.getElementById("infoNext");
 const mapInfo = document.getElementById("mapInfo");
+const hintBox = document.getElementById("hintBox");
+const hintText = document.getElementById("hintText");
+const hintBtn = document.getElementById("hintBtn");
+const areaHintBtn = document.getElementById("areaHintBtn");
 
 const textBox = document.createElement("input"); // the box for Hard mode
 textBox.type = "text"; //what kind of box
 textBox.id = "answer"; //id for the box
 textBox.placeholder = "Type the landmark name"; //placeholder text
-playBox.appendChild(textBox); //add inside the game area
+playBox.insertBefore(textBox, hintBox); //add inside the game area, above the hint
 
 // Start a new game.
 function startGame(chosen) {
@@ -121,6 +135,7 @@ function startGame(chosen) {
   availableLandmarks = landmarks.slice(); // reset the available landmarks
   score = 0;
   round = 1;
+  roundLog = [];
   startBox.classList.add("hidden");
   endBox.classList.add("hidden");
   mapBox.classList.add("hidden");
@@ -138,16 +153,21 @@ function showRound() {
   feedback.textContent = "";
   toMapBtn.classList.add("hidden");
   textBox.disabled = false; // unlock typing (it is locked after you answer)
+  answered = false; // a new round: allow one answer again
+  // start this round's record for the end-screen summary
+  cur = { name: randval.name, answer: "", result: "", namePts: 0, letterHints: 0, letterLost: 0, circle: false, circleLost: 0, km: null, pinPts: 0 };
   document.getElementById("total").textContent = `Round: ${round} / ${ROUNDS}`;
 
   if (difficulty === "easy") {
     textBox.classList.add("hidden");
     optionsBox.classList.remove("hidden");
+    hintBox.classList.add("hidden");
     showOptions();
   } else {
     optionsBox.classList.add("hidden");
     textBox.classList.remove("hidden");
     textBox.value = "";
+    startHints();
     textBox.focus();
   }
 }
@@ -164,7 +184,11 @@ function showOptions() {
     button.className = "option";
     button.textContent = choice.name;
     button.addEventListener("click", function () {
-      
+      if (!answered) {
+        cur.answer = choice.name; // remember what was picked
+        cur.result = choice === randval ? "Correct" : "Wrong";
+      }
+
       // Highlight the correct answer in green, and the wrong answer in red.
       for (const other of optionsBox.querySelectorAll("button")) {
         if (other.textContent === randval.name) {
@@ -187,6 +211,11 @@ function showOptions() {
 
 
 function finishRound(points, message) {
+  if (answered) {
+    return; 
+  }
+  answered = true;
+  cur.namePts = points;
   score += points;
   roundPoints = points;
   feedback.textContent = message;
@@ -196,10 +225,107 @@ function finishRound(points, message) {
   for (const b of optionsBox.querySelectorAll("button")) {
     b.disabled = true;
   }
+  hintBtn.disabled = true;
   toMapBtn.classList.remove("hidden");
 }
 
 toMapBtn.addEventListener("click", showMap);
+
+//letter hint
+function hintPattern() {
+  return hintName
+    .split("")
+    .map((ch, i) => {
+      if (ch === " ") return " "; // keep a gap between words
+      return hintMask[i] ? ch.toUpperCase() : "_";
+    })
+    .join(" ");
+}
+
+function updateHintUI() {
+  hintText.textContent = hintPattern();
+  const left = Math.min(MAX_HINTS, hintMax) - hintsUsed;
+  hintBtn.textContent = left > 0 ? `Reveal a letter (-${HINT_COST} points) · ${left} left` : "No hints left";
+  hintBtn.disabled = left <= 0 || answered;
+}
+
+let hintMax = 0; // how many hints this round's name allows
+
+function startHints() {
+  hintsUsed = 0;
+  hintName = randval.name.replace(/\s*\(.*?\)/g, "").trim();
+  hintMask = hintName.split("").map((ch) => ch === " " || !/[a-z0-9]/i.test(ch)); 
+  const letters = hintName.split("").filter((ch) => /[a-z0-9]/i.test(ch)).length;
+  hintMax = Math.min(MAX_HINTS, Math.floor(letters / 2));
+  hintBox.classList.remove("hidden");
+  updateHintUI();
+}
+
+hintBtn.addEventListener("click", function () {
+  if (answered || hintsUsed >= hintMax) {
+    return;
+  }
+  const hidden = [];
+  hintMask.forEach((shown, i) => {
+    if (!shown) hidden.push(i);
+  });
+  const pick = hidden[Math.floor(Math.random() * hidden.length)];
+  hintMask[pick] = true;
+  hintsUsed += 1;
+  updateHintUI();
+  textBox.focus(); 
+});
+
+// Points for naming, after hints: each hint costs HINT_COST, never below 0.
+function afterHints(points) {
+  return Math.max(0, points - hintsUsed * HINT_COST);
+}
+
+// Text for the feedback line, e.g. "(2 hints: -20)".
+function hintNote() {
+  return hintsUsed > 0 ? ` (${hintsUsed} hint${hintsUsed > 1 ? "s" : ""}: -${hintsUsed * HINT_COST})` : "";
+}
+
+// dash cricle creation
+const AREAS = {
+  "North America": { lat: 38, lon: -98, r: 40 },
+  "South America": { lat: -15, lon: -60, r: 33 },
+  Europe: { lat: 50, lon: 15, r: 26 },
+  Africa: { lat: 2, lon: 20, r: 40 },
+  Asia: { lat: 32, lon: 90, r: 58 },
+  "the South Pacific": { lat: -20, lon: -120, r: 28 },
+};
+
+// country use in landmark list
+const CONTINENT_OF = {
+  "United States": "North America",
+  Canada: "North America",
+  Panama: "North America",
+  Peru: "South America",
+  Brazil: "South America",
+  Bolivia: "South America",
+  France: "Europe",
+  Italy: "Europe",
+  "United Kingdom": "Europe",
+  Germany: "Europe",
+  Greece: "Europe",
+  Egypt: "Africa",
+  India: "Asia",
+  China: "Asia",
+  Jordan: "Asia",
+  Japan: "Asia",
+  Nepal: "Asia",
+};
+
+// Easter Island is in Chile but far out in the Pacific, so it gets its own area.
+const AREA_OVERRIDE = { "Easter Island (Moai)": "the South Pacific" };
+
+// Returns { name, lat, lon, r } for a landmark, or null if we don't know.
+function hintArea(landmark) {
+  const first = landmark.country.split(/ \/ | \(/)[0].trim();
+  const name = AREA_OVERRIDE[landmark.name] || CONTINENT_OF[first];
+  return name ? { name, ...AREAS[name] } : null;
+}
 
 
 // Map part
@@ -230,6 +356,11 @@ function showMap() {
   S.pin = null;
   S.phase = "pin"; // mapLabels.js only accepts clicks in this phase
   S.diff = difficulty; // Easy shows names on the map, Hard does not
+  S.hint = null; // the dashed circle only appears if the player clicks the hint button (Easy)
+  areaHintUsed = false;
+  areaHintBtn.disabled = false;
+  areaHintBtn.textContent = `Show a hint: continent (-${AREA_HINT_COST} points)`;
+  areaHintBtn.classList.remove("hidden"); // Easy and Hard both get the continent hint
   playBox.classList.add("hidden");
   mapBox.classList.remove("hidden");
   document.getElementById("mapQuestion").textContent = `Where is the ${randval.name}?`;
@@ -242,23 +373,56 @@ function showMap() {
   setView(homeView()); // show the whole world
 }
 
+// Easy hint button: reveal the dashed circle, costs points.
+areaHintBtn.addEventListener("click", function () {
+  if (S.phase !== "pin" || areaHintUsed) {
+    return;
+  }
+  areaHintUsed = true;
+  S.hint = hintArea(randval); // mapLabels.js draws the circle when S.hint is set
+  drawMarkers();
+  areaHintBtn.disabled = true;
+  areaHintBtn.textContent = `Hint used (-${AREA_HINT_COST} points)`;
+  mapInfo.textContent = `Hint: it is somewhere inside the dashed circle (${S.hint.name}). Click the map to drop your pin.`;
+});
+
 // "Confirm pin": measure the distance, give points, show the answer.
 confirmBtn.addEventListener("click", function () {
+  if (S.phase !== "pin" || !S.pin) {
+    return; // already confirmed (or no pin yet): don't score twice
+  }
   S.phase = "reveal"; // no more pin changes
   const distance = km(S.pin.lat, S.pin.lon, randval.lat, randval.lon);
-  const points = mapPoints(distance);
+  let points = mapPoints(distance);
+  const pinFull = points; // pin points before the hint cost
+  if (areaHintUsed) {
+    points = Math.max(0, points - AREA_HINT_COST); // the circle hint costs points
+  }
   score += points;
   document.getElementById("score").textContent = `Score: ${score}`;
+  // save this round for the summary
+  cur.km = distance;
+  cur.pinPts = points;
+  cur.circle = areaHintUsed;
+  cur.circleLost = pinFull - points;
+  roundLog.push(cur);
 
   drawMarkers(); // red = real place, blue = your pin
   // zoom the map so both pins are in view
   animateTo(fitTo([toXY(S.pin.lat, S.pin.lon), toXY(randval.lat, randval.lon)]), 900);
   mapInfo.textContent =
     `Your pin was ${Math.round(distance).toLocaleString()} km away. ` +
-    `+${points} points! (This round: ${roundPoints + points})`;
+    `+${points} points!${areaHintUsed ? ` (hint: -${AREA_HINT_COST})` : ""} (This round: ${roundPoints + points})`;
   confirmBtn.classList.add("hidden");
+  areaHintBtn.classList.add("hidden");
   nextBtn.textContent = "Learn about it";
   nextBtn.classList.remove("hidden");
+  // The next button appears right where Confirm was, so a double-click would skip the result.
+  // Keep it disabled for a moment.
+  nextBtn.disabled = true;
+  setTimeout(function () {
+    nextBtn.disabled = false;
+  }, 800);
 });
 
 // Info page: show the landmark's name, picture, and some facts.
@@ -290,6 +454,7 @@ infoNext.addEventListener("click", function () {
   if (round >= ROUNDS) {
     const best = (difficulty === "easy" ? POINTS_EASY : POINTS_EXACT) + POINTS_MAP;
     document.getElementById("finalScore").textContent = `Final Score: ${score} / ${ROUNDS * best}`;
+    showSummary();
     endBox.classList.remove("hidden");
   } else {
     round += 1;
@@ -302,11 +467,20 @@ infoNext.addEventListener("click", function () {
 textBox.addEventListener("keydown", function (event) {
   if (event.key === "Enter") {
     const result = grade(textBox.value, randval.answers);
+    if (!answered) {
+      cur.answer = textBox.value.trim();
+      cur.result = result === "exact" ? "Correct" : result === "typo" ? "Typo" : "Wrong";
+      cur.letterHints = hintsUsed;
+    }
 
     if (result === "exact") {
-      finishRound(POINTS_EXACT, `Correct! +${POINTS_EXACT} points!`);
+      const pts = afterHints(POINTS_EXACT);
+      cur.letterLost = POINTS_EXACT - pts;
+      finishRound(pts, `Correct! +${pts} points!${hintNote()}`);
     } else if (result === "typo") {
-      finishRound(POINTS_TYPO, `Close, typo! +${POINTS_TYPO} points!`);
+      const pts = afterHints(POINTS_TYPO);
+      cur.letterLost = POINTS_TYPO - pts;
+      finishRound(pts, `Close, typo! +${pts} points!${hintNote()}`);
     } else {
       finishRound(0, `Incorrect! The correct answer is: ${randval.name}`);
     }
@@ -387,6 +561,53 @@ document.getElementById("easyBtn").addEventListener("click", function () {
 document.getElementById("hardBtn").addEventListener("click", function () {
   startGame("hard");
 });
+
+// End screen
+function showSummary() {
+  const box = document.getElementById("summary");
+  box.innerHTML = "";
+  const table = document.createElement("table");
+  const head = table.insertRow();
+  for (const h of ["#", "Landmark", "Your answer", "Naming", "Pin", "Hints used", "Round total"]) {
+    const th = document.createElement("th");
+    th.textContent = h;
+    head.appendChild(th);
+  }
+  let lostLetters = 0;
+  let lostCircle = 0;
+  roundLog.forEach(function (r, i) {
+    const row = table.insertRow();
+    const hints = [];
+    if (r.letterHints > 0) {
+      hints.push(`${r.letterHints} letter${r.letterHints > 1 ? "s" : ""} (-${r.letterLost})`);
+    }
+    if (r.circle) {
+      hints.push(`continent (-${r.circleLost})`);
+    }
+    lostLetters += r.letterLost;
+    lostCircle += r.circleLost;
+    const cells = [
+      i + 1,
+      r.name,
+      r.answer || "-",
+      `${r.result} (+${r.namePts})`,
+      `${Math.round(r.km).toLocaleString()} km (+${r.pinPts})`,
+      hints.length ? hints.join(", ") : "none",
+      r.namePts + r.pinPts,
+    ];
+    cells.forEach(function (text, c) {
+      const td = row.insertCell();
+      td.textContent = text;
+      if (c === 3) {
+        td.className = r.result === "Wrong" ? "bad" : "good"; // red or green
+      }
+    });
+  });
+  box.appendChild(table);
+  const note = document.createElement("p");
+  note.textContent = `Points lost to hints: ${lostLetters + lostCircle}`;
+  box.appendChild(note);
+}
 
 document.getElementById("again").addEventListener("click", function () {
   location.reload(); // reloads the page to go back to the start screen

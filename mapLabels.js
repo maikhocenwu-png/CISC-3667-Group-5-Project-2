@@ -188,6 +188,7 @@ function drawMarkers(){
   if(!layer)return;const k=vb.w/Math.max(300,svg.clientWidth||600)*1.6;let h='';
   const a=S.phase==='reveal'&&S.cur?toXY(S.cur.lat,S.cur.lon):null;
   const p=S.pin?toXY(S.pin.lat,S.pin.lon):null;
+  if(S.hint&&S.phase==='pin'){const c=toXY(S.hint.lat,S.hint.lon);h+=`<circle cx="${c[0]}" cy="${c[1]}" r="${S.hint.r*1000/360}" fill="#16a34a" fill-opacity=".08" stroke="#15803d" stroke-width="${2.5*k}" stroke-dasharray="${10*k} ${7*k}" pointer-events="none"/>`} // Easy hint: dashed circle
   if(a&&p)h+=`<line x1="${p[0]}" y1="${p[1]}" x2="${a[0]}" y2="${a[1]}" stroke="#333" stroke-width="${2*k}" stroke-dasharray="${6*k} ${4*k}"/>`;
   if(p)h+=`<circle cx="${p[0]}" cy="${p[1]}" r="${7*k}" fill="#2563eb" stroke="#fff" stroke-width="${2.5*k}"/>`;
   if(a)h+=`<circle cx="${a[0]}" cy="${a[1]}" r="${12*k}" fill="#e5484d" fill-opacity=".25"/><circle cx="${a[0]}" cy="${a[1]}" r="${7*k}" fill="#e5484d" stroke="#fff" stroke-width="${2.5*k}"/>`;
