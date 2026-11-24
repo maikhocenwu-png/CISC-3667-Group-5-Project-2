@@ -14,6 +14,45 @@ How to run/install the game:
 1. Clone the repository
 2. Open 'index.html' in a browser
 
+
+
+
+
+References and citation: 
+
+Landmarks: 
+Eiffel Tower: Eiffel Tower official history, Britannica
+Great Pyramid of Giza: UNESCO, Memphis and its Necropolis
+Statue of Liberty: National Park Service facts, UNESCO
+Taj Mahal: UNESCO, Britannica
+Colosseum: Britannica
+Big Ben: UK Parliament, Big Ben, Britannica
+Great Wall of China: UNESCO, Britannica
+Machu Picchu: Britannica, UNESCO
+Christ the Redeemer: Britannica
+Petra: UNESCO, Britannica
+Golden Gate Bridge: Golden Gate Bridge Highway and Transportation District facts, Britannica
+Leaning Tower of Pisa: Britannica, UNESCO, Piazza del Duomo
+Stonehenge: English Heritage, Building Stonehenge, UNESCO
+Easter Island (Rapa Nui): UNESCO, Britannica
+Mount Fuji: UNESCO, Britannica
+Grand Canyon: National Park Service FAQ, UNESCO
+Salar de Uyuni: NASA Earth Observatory, Britannica
+Niagara Falls: Britannica
+Mount Everest: Britannica, National Geographic
+Berlin Wall: Britannica, History.com
+One World Trade Center: Britannica, WTC.com
+Hollywood Sign: Hollywood Sign Trust history
+Nile River: Britannica
+Cologne Cathedral: UNESCO, Britannica
+Acropolis of Athens: UNESCO, Britannica
+Mount Rushmore: National Park Service timeline, Britannica
+Panama Canal: Britannica, Panama Canal Authority
+Times Square: Times Square Alliance history, Britannica
+Brooklyn College: Brooklyn College, Our History
+Map data: Natural Earth
+
+
 Pictures: 
 
 Big ben :Diogo Nunes:https://unsplash.com/photos/big-ben-under-white-sky-during-daytime-2c08m7lce68
